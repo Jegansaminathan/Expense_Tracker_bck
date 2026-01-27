@@ -64,11 +64,9 @@ let getuinfo = async (req, res) => {
 };
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true, // Use true for port 465, false for port 587
+  service: "gmail",
   auth: {
-    user: "jjegan663@gmail.com",
+    user: process.env.Transportuser,
     pass: process.env.Apppass,
   },
 });
@@ -120,7 +118,7 @@ let sendotp = async (req, res) => {
 let checkotp = async (req, res) => {
   try {
     let user = await userm.findOne({ email: req.body.email });
-    if(!user){
+    if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }
     if (!user.resetotp) {
@@ -149,7 +147,7 @@ let updpass = async (req, res) => {
     if (req.body.pwd == "") {
       return res.json({ msg: "field is required" });
     }
-    let user = await userm.findOne({'email':req.body.email});
+    let user = await userm.findOne({ email: req.body.email });
     if (!user || !user.resetotp || !user.resetotp.verified) {
       return res.json({ msg: "verification needed" });
     }
@@ -159,8 +157,8 @@ let updpass = async (req, res) => {
       { email: req.body.email },
       {
         $set: { pwd: hashpwd },
-        $unset: { resetotp: "" }
-      }
+        $unset: { resetotp: "" },
+      },
     );
 
     res.status(201).json({ msg: "successfully updated" });
