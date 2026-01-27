@@ -64,17 +64,15 @@ let getuinfo = async (req, res) => {
 };
 
 const transporter = nodemailer.createTransport({
-  host: "smtp-relay.gmail.com",
-  port: 587,
-  secure: false,
+  service: "gmail",
   auth: {
     user: process.env.Transportuser,
     pass: process.env.Apppass,
   },
-  tls: {
-    rejectUnauthorized: false,
-  },
+  connectionTimeout: 10000,
+  socketTimeout: 10000,
 });
+
 transporter.verify((err, success) => {
   if (err) {
     console.log("SMTP ERROR:", err);
@@ -108,17 +106,13 @@ let sendotp = async (req, res) => {
           },
         },
       );
-      const info = await transporter.sendMail({
+      res.status(200).json({ msg: "otp sent sucessfully" });
+      await transporter.sendMail({
         from: "<jjegan663@gmail.com>",
         to: urs.email,
         subject: "otp to reset password",
         text: result,
       });
-      if (info.accepted.length != 0) {
-        res.status(200).json({ msg: "otp sent sucessfully" });
-      } else {
-        res.status(500).json({ msg: "error in sending" });
-      }
     } else {
       res.status(404).json({ msg: "check the mail or register" });
     }
