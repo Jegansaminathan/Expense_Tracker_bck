@@ -1,8 +1,11 @@
 let express=require('express')
-const { login, reg, getuinfo } = require('../controller/userctl')
+const { login, reg, getuinfo, sendotp, checkotp, updpass } = require('../controller/userctl')
 const protect = require('../middleware/auth')
 let urt=express.Router()
 urt.post('/login',login)
 urt.post('/reg',reg)
 urt.get('/getUserInfo',protect,getuinfo)
+urt.get('/forgotPass/:email',sendotp)
+urt.post('/forgotPassOtp',checkotp)
+urt.post('/updateForgotPass',updpass)
 module.exports=urt
