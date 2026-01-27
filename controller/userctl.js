@@ -75,6 +75,13 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false,
   },
 });
+transporter.verify((err, success) => {
+  if (err) {
+    console.log("SMTP ERROR:", err);
+  } else {
+    console.log("SMTP READY");
+  }
+});
 const otp = () => {
   let result = Math.floor(100000 + Math.random() * 900000) + "";
   let expire = Date.now() + 10 * 60 * 1000;
