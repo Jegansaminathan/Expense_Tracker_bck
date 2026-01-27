@@ -1,8 +1,8 @@
 const userm = require("../model/usermod");
 let bcrypt = require("bcrypt");
-const { response } = require("express");
 let jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
+const sgmail = require("@sendgrid/mail");
+sgmail.setApiKey(process.env.SENDGRID_API_KEY);
 
 let generateToken = (_id) => {
   return jwt.sign({ _id }, process.env.JwtSecretkey, { expiresIn: "1h" });
@@ -63,23 +63,24 @@ let getuinfo = async (req, res) => {
   }
 };
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.Transportuser,
-    pass: process.env.Apppass,
-  },
-  connectionTimeout: 10000,
-  socketTimeout: 10000,
-});
-
-transporter.verify((err, success) => {
-  if (err) {
-    console.log("SMTP ERROR:", err);
-  } else {
-    console.log("SMTP READY");
+const sendMail = async (to, subject, text) => {
+  try {
+    const response = await sgmail.send({
+      to: to,
+      from: process.env.FROM_EMAIL,
+      subject: subject,
+      text: text,
+    });
+    if (response[0].statusCode === 202) {
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.error("SendGrid error:", err.response?.body || err.message);
+    return false;
   }
-});
+};
+
 const otp = () => {
   let result = Math.floor(100000 + Math.random() * 900000) + "";
   let expire = Date.now() + 10 * 60 * 1000;
@@ -106,13 +107,15 @@ let sendotp = async (req, res) => {
           },
         },
       );
+      const sent = await sendMail(
+        urs.email,
+        "Password Reset OTP",
+        `Your OTP is ${result}`,
+      );
+      if (!sent) {
+        return res.status(500).json({ msg: "Mail sending failed" });
+      }
       res.status(200).json({ msg: "otp sent sucessfully" });
-      await transporter.sendMail({
-        from: "<jjegan663@gmail.com>",
-        to: urs.email,
-        subject: "otp to reset password",
-        text: result,
-      });
     } else {
       res.status(404).json({ msg: "check the mail or register" });
     }
