@@ -5,7 +5,7 @@ const sgmail = require("@sendgrid/mail");
 sgmail.setApiKey(process.env.SENDGRID_API_KEY);
 
 let generateToken = (_id) => {
-  return jwt.sign({ _id }, process.env.JwtSecretkey, { expiresIn: "1h" });
+  return jwt.sign({ _id }, process.env.JwtSecretkey, { expiresIn: "3d" });
 };
 let reg = async (req, res) => {
   const { email, name, pwd } = req.body || {};
